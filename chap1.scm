@@ -28,4 +28,3 @@
 (define (test x y) (if (= x 0) 0 y))
 ; application order: infinite recursion. normal order: 0
 ; (test 0 (p))
-

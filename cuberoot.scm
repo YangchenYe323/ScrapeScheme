@@ -1,0 +1,5 @@
+(define (improve guess target) (/ (+ (/ target (* guess guess)) (* 2 guess)) 3))
+(define (good guess target) (< (abs (- target (* (* guess guess) guess))) 0.00001))
+(define (cube_root_iter guess target) (if (good guess target) guess (cube_root_iter (improve guess target) target)))
+(define (cube_root target) (cube_root_iter 1 target))
+(cube_root 3)
