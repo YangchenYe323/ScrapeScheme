@@ -4,6 +4,12 @@
 (/ 6 2)
 (+ (* 2 4) (- 4 6))
 
+(+	(* 3
+	   (+ (* 2 4)
+	      (+ 3 5)))
+	(+ (- 10 7) 
+		6))
+
 ; define variables
 (define a 3)
 (define b (+ a 1))
@@ -18,7 +24,23 @@
 (/ (+ 5 4 (- 2 (- 3 (+ 6 (/ 4 5))))) (* 3 (- 6 2) (- 2 7)))
 
 ; define functions
-(define (sum_of_square_larger x y z) (cond ((and (< x y) (< x z)) (+ (* y y) (* z z))) ((and (< y x) (< y z)) (+ (* x x) (* z z))) (else (+ (* x x) (* y y)))))
+(define (abs x) 
+	    (cond ((> x 0) x)
+			  ((= x 0) 0)
+			  ((< x 0) (- 0 x))))
+(abs (- 0 5))
+(define (square x) (* x x))
+(define (sum_of_square_larger x y z) 
+	(cond 
+		(
+			(and (< x y) (< x z)) (+ (* y y) (* z z))
+		) 
+		(
+			(and (< y x) (< y z)) (+ (* x x) (* z z))
+		) 
+		(else (+ (* x x) (* y y)))
+	)
+)
 (sum_of_square_larger 1 2 3)
 (sum_of_square_larger 2 2 2)
 (sum_of_square_larger 4 2 9)
