@@ -137,4 +137,135 @@
 (define (fib n)
   (fib-iter 1 0 0 1 n))
 
+; euclidean algorithm
+(define (gcd a b)
+  (if (= b 0) 
+    a
+	(gcd b (remainder a b))))
 
+; exercise 1.20
+; (gcd 206 40)
+; (gcd 40 (remainder 206 40))
+; (gcd 40 6) (evaluate if predicate first, #remainder = 1)
+; (gcd 6 (remainder 40 6))
+; (gcd 6 4) (#remainder = 2)
+; (gcd 4 (remainder 6 4)) 
+; (gcd 4 2) (#remainder = 3)
+; (gcd 2 (remainder 4 2))
+; (gcd 2 0) (#remainder = 4)
+; 2
+
+; search for divisers O(\sqrt{n})
+(define (divides? a b) (= (remainder a b) 0))
+(define (find-divisor n test-divisor)
+  (cond ((> (* test-divisor test-divisor) n) n)
+        ((divides? n test-divisor) test-divisor)
+		(else (find-divisor n (+ test-divisor 1)))))
+(define (smallest-divisor n) (find-divisor n 2))
+(define (prime? n) (= (smallest-divisor n) n))
+
+; probabilistic test
+; base^exp % m
+(define (expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+		  (remainder (square (expmod base (/ exp 2) m)) m))
+		(else
+		  (remainder (* base (expmod base (- exp 1) m)) m))))
+
+(define (fermat-test n)
+  (define (try-it a)
+    (= (expmod a n n) a))
+  (try-it (+ 2 (random (- n 2)))))
+
+(define (fast-prime? n times)
+  (cond ((= times 0) #t)
+        ((fermat-test n) (fast-prime? n (- times 1)))
+		(else #f)))
+
+; exercise 1.21
+(smallest-divisor 199) ; 199
+(smallest-divisor 1999) ; 1999
+(smallest-divisor 19999) ; 7
+
+; exercise 1.22
+(define (timed-prime-test n)
+  (newline)
+  (display n)
+  (start-prime-test n (runtime)))
+  (define (start-prime-test n start-time)
+    (if (prime? n)
+      (report-prime (- (runtime) start-time))))
+  (define (report-prime elapsed-time)
+    (display " *** ")
+    (display elapsed-time))
+
+(define (search-for-primes from to)
+  (define (search-iter start to)
+    (cond ((< start to) 
+	          (cond ((not (even? start)) (timed-prime-test start))
+	    		(else #f))
+			  (search-iter (+ 1 start) to))
+		  (else #f)))
+  (search-iter from to))
+
+; exercise 1.23
+; runtime does not work. passed
+
+; exercise 1.24
+; runtime does not work. passed
+
+; exercise 1.25
+(define (expmod base exp m)
+  (remainder (fast-expt base exp) m))
+; it won't work for intermediate prime numbers and base
+; because the result will overflow
+; our version never overflows because we take the remaider in each step
+
+; exercise 1.26
+(define (wrong-expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder (* (expmod base (/ exp 2) m)
+                       (expmod base (/ exp 2) m))
+                    m))
+        (else
+         (remainder (* base (expmod base (- exp 1) m))
+                    m))))
+; in this implementation, each recursive step is evaluated twice by the interpretor
+; and hence the algorithm is still linear.
+
+; exercise 1.28
+; Miller-Rabin test
+
+(define (remainder-square-checked x m)
+  (if (and (not (or (= x 1) (= x (- m 1))))
+           (= (remainder (* x x) m) 1)) 
+    0
+	(remainder (* x x) m)))
+
+(define (expmod-checked base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+		  (remainder-square-checked (expmod base (/ exp 2) m) m))
+		(else
+		  (remainder (* base (expmod base (- exp 1) m)) m))))
+
+(define (miller-rabin-test n) 
+  (define (try-it a)
+    (= (expmod-checked a (- n 1) n) 1))
+  (try-it (+ 2 (random (- n 2)))))
+
+(define (miller-rabin-prime? n times)
+  (cond ((= times 0) #t)
+        ((miller-rabin-test n) (miller-rabin-prime? n (- times 1)))
+		(else #f)))
+		
+		
+(miller-rabin-prime? 13 100) ; #t
+(miller-rabin-prime? 97 100) ; #t
+(miller-rabin-prime? 128 100) ; #f
+
+
+
+		
