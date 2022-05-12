@@ -156,3 +156,237 @@
 
 (product-coprime 6) ; 1 * 5 = 5
 (product-coprime 7) ; 1 * 2 * 3 * 4 * 5 * 6 = 720
+
+; lambda
+(define (pi-sum-lambda a b)
+  (sum (lambda (x) (/ 1.0 (* x (+ x 2)))) ;term
+       (lambda (x) (+ x 4)) ;next
+       a
+       b))
+
+(pi-sum 1 10)
+(pi-sum-lambda 1 10)
+
+; let binding
+; f(x, y) = ra^2 + yb + ab
+; a = xy + 1, b = y - 1
+(define (f x y)
+  (let ((a (+ 1 (* x y))) ;a = xy + 1
+        (b (- 1 y)))     ;b = y - 1
+  (+ (* x a a)
+     (* y b)
+     (* a b))))
+
+(f 3 6)
+
+; exercise 1.34
+(define (f g) (g 2))
+(f (lambda (x) (* x (+ x 1))))
+; (f f) ; object 2 is not applicable:
+; (f f)
+; (f 2)
+; (2 2)
+
+(define (search f neg-point pos-point)
+  (define (close-enough? x y)
+    (< (abs (- x y)) 0.001))
+  (let ((mid-point (/ (+ neg-point pos-point) 2.0)))
+       (if (close-enough? neg-point pos-point)
+         mid-point
+         (let ((test-value (f mid-point)))
+            (cond ((> test-value 0) (search f neg-point mid-point))
+                  ((< test-value 0) (search f mid-point pos-point))
+                  (else mid-point))))))
+
+(define (half-interval-method f a b)
+  (let ((a-value (f a))
+        (b-value (f b)))
+    (cond ((and (< a-value 0) (> b-value 0)) (search f a b))
+          ((and (< b-value 0) (> a-value 0)) (search f b a))
+          (else (error "Values are not of opposite sign" a b)))))
+
+(half-interval-method sin 2.0 4.0)
+
+(half-interval-method (lambda (x) (- (* x x x) (* 2 x) 3))
+                       1.0
+                       2.0)
+
+(define (fixed-point f first-guess)
+  (define (close-enough? x y) (< (abs (- x y)) 0.00001))
+  (define (try x)
+    (let ((next (f x)))
+      (if (close-enough? x next)
+        next
+        (try next))))
+  (try first-guess))
+
+(fixed-point cos 1.0)
+
+; sqrt based on fix point
+(define (sqrt x)
+  (fixed-point (lambda (y) (/ (+ y (/ x y)) 2)) 1.0))
+
+(sqrt 2)
+
+; exercise 1.35
+(define golden-ratio (fixed-point (lambda (x) (+ 1 (/ 1 x))) 1.0))
+golden-ratio
+
+; exercise 1.36
+(define (fixed-point-print f first-guess)
+  (define (close-enough? x y) (< (abs (- x y)) 0.00001))
+  (define (try x)
+    (let ((next (f x)))
+          (newline)
+          (display next)
+          (if (close-enough? x next)
+            next
+            (try next))))
+  (try first-guess))
+
+(fixed-point-print (lambda (x) (/ (log 1000) (log x))) 1.5)
+
+; exercise 1.37
+(define (cont-frac n d k)
+  (define (iter n d i k)
+    (let ((ni (n i))
+          (di (d i)))
+        ;  (newline)
+        ;  (display ni)
+        ;  (display "$")
+        ;  (display di)
+         (if (= i k)
+           (/ ni di)
+           (/ ni (+ di (iter n d (+ 1 i) k))))))
+  (iter n d 1 k))
+
+(cont-frac (lambda (i) 1.0)
+           (lambda (i) 1.0)
+           1000) ;the golden ratio
+
+; iterative cont-frac
+(define (cont-frac-iter n d res k)
+  (let ((nk (n k))
+        (dk (d k)))
+    (if (= k 0)
+      res
+      (cont-frac-iter n 
+                      d 
+                      (/ nk (+ dk res))
+                      (- k 1)))))
+(cont-frac-iter (lambda (i) 1.0)
+                (lambda (i) 1.0)
+                0
+                1000)
+
+; exercise 1.38
+; Euler Approximation of E
+(+ 2 (cont-frac 
+        (lambda (x) 1.0)
+        (lambda (x) (cond ((= x 1) 1.0)
+                          ((= x 2) 2.0)
+                          ((= (remainder (- x 2) 3) 0) 
+                          (+ 2.0 (* 2 (/ (- x 2) 3))))
+                          (else 1.0)))
+        1000))
+
+; exercise 1.39
+(define (tan-cf x k)
+  (define (d i) (- (* 2.0 i) 1))
+  (define (n i) (if (= x 1) 1 (* x x (- 0 1))))
+  (cont-frac n d k))
+
+(tan-cf 1 100)
+
+; procedures as return value
+(define (average a b) (/ (+ a b) 2))
+
+(define (average-damp f)
+  (lambda (x) (average x (f x))))
+
+((average-damp square) 10)
+
+(define (sqrt x)
+  (fixed-point (average-damp (lambda (y) (/ x y))) 1.0))
+
+(define (cube-root x)
+  (fixed-point (average-damp (lambda (y) (/ x (square y)))) 1.0))
+
+; newton's method
+(define dx 0.00001)
+(define (deriv g)
+  (lambda (x)
+    (/ (- (g (+ x dx)) (g x))
+       dx)))
+
+(define (cube x) (* x x x))
+((deriv cube) 5)
+
+(define (newton-transform g)
+  (lambda (x)
+    (- x (/ (g x) ((deriv g) x)))))
+
+(define (newtons-method g guess)
+  (fixed-point (newton-transform g) guess))
+
+(define (sqrt x)
+  (newtons-method (lambda (y) (- (square y) x)) 1.0))
+
+(sqrt 2)
+
+; exercise 1.40
+(define (cubic a b c)
+  (lambda (x) (+ (* x x x)
+                 (* x x a)
+                 (* b x)
+                 c)))
+
+(newtons-method (cubic 2 3 1) 1)
+
+; exercise 1.41
+(define (double f)
+  (lambda (x) (f (f x))))
+
+((double square) 2)
+
+; exercise 1.42
+(define (compose f g)
+  (lambda (x) (f (g x))))
+
+((compose square inc) 6)
+
+; exercise 1.43
+(define (repeated f n)
+  (define (iter x i)
+    (if (= i 0)
+      x
+      (iter (f x) (- i 1))))
+  (lambda (x) (iter x n)))
+
+((repeated square 2) 5)
+
+; exercise 1.44
+(define (smooth f)
+  (define dx 0.0001)
+  (lambda (x) (/ (+ (f x)
+                    (f (+ x dx))
+                    (f (- x dx)))
+                 3.0)))
+
+(define (n-fold-smooth f n) ((repeated smooth n) f))
+
+; todo: exercise 1.45
+
+; exercise 1.46
+(define (iterative-improve good-enough? improve)
+  (define (p x) (if (good-enough? x) x (p (improve x))))
+  p)
+
+(define (sqrt-iterative-improve x)
+  (define (good-enough? guess)
+    (< (abs (- x (* guess guess))) 0.0001))
+  (define (improve guess)
+    (/(+ guess (/ x guess)) 2))
+  ((iterative-improve good-enough? improve) 1.0))
+
+(sqrt-iterative-improve 2)
