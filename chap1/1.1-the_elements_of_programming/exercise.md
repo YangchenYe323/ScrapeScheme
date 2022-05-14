@@ -1,6 +1,6 @@
 1.1 - 1.5:
 
-see [basics.scm](https://github.com/YangchenYe323/ScrapeScheme/chap1/basics.scm)
+see [contents.scm](https://github.com/YangchenYe323/ScrapeScheme/chap1/contents.scm)
 
 1.1:
 
