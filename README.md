@@ -37,6 +37,8 @@ This repo contains code from [Structure and Interpretation of Computer Programs]
 
 - [ ] 2.11 - 2.16
 
+- [x] 2.17 - 2.32 [contents.scm](chap2/2.2-hearchical_data_and_closure_property/contents.scm)
+
   
 
   
